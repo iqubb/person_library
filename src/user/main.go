@@ -1,24 +1,31 @@
 package main
 
 import (
-	pb "github.com/iqubb/src/user/proto"
+	"github.com/iqubb/src/user/store"
 	"google.golang.org/grpc"
 	"log"
 	"net"
 )
 
 const (
-	port = "5001"
+	port = ""
 )
 
 func main() {
+
+	db, err := store.CreateConnection()
+	if err != nil {
+		log.Panic(err)
+	}
+	defer db.Close()
+
+	//repository := store.NewPostgresRepository(db)
 
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	pb.RegisterUserServiceServer(s, &UserServer{})
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
 	}
