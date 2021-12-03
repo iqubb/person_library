@@ -4,6 +4,13 @@ package book_service;
 
 option go_package = "./;book_service";
 
+service BookService {
+  rpc GetBook(GetBookRequest) returns (GetBookResponse) {}
+  rpc CreateBook(Book) returns (CreateBookResponse){}
+  rpc GetAllBooks(GetAllBooksRequest) returns (GetAllBooksResponse) {}
+  rpc GetBooksByAuthor(GetBooksByAuthorRequest) returns (GetBooksByAuthorResponse) {}
+}
+
 message Book {
   int64 id = 1;
   string title = 2;
@@ -15,17 +22,29 @@ message GetBookRequest {
   int64 id = 1;
 }
 
-message UpdateBookRequest {
-  bool isOrder = 1;
+message GetBookResponse {
+  string title = 1;
+  string author = 2;
+  bool isOrder = 3;
 }
 
-message GetBookByAuthor {
+message CreateBookResponse {
+  Book book = 1;
+}
+
+message GetAllBooksRequest {
+
+}
+
+message GetAllBooksResponse {
+  repeated Book allBooks = 1;
+}
+
+message GetBooksByAuthorRequest {
   string author = 1;
 }
 
-service BookService {
-  rpc GetBook(GetBookRequest) returns (Book) {}
-  rpc GetBooksByAuthor(GetBookByAuthor) returns (stream Book) {}
-  rpc GetBooks(stream GetBookRequest) returns (stream Book) {}
-  rpc Update(UpdateBookRequest) returns (Book) {}
+message GetBooksByAuthorResponse {
+  repeated Book books = 1;
 }
+

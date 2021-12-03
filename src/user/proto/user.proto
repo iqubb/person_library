@@ -4,6 +4,12 @@ package user_service;
 
 option go_package = "./;user_service";
 
+service UserService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+  rpc CreateUser(User) returns (CreateUserResponse) {}
+  rpc GetAllUsers(GetAllUsersRequest) returns (GetAllUsersResponse) {}
+}
+
 message User {
   int64 id = 1;
   string name = 2;
@@ -16,13 +22,23 @@ message GetUserRequest {
   int64 id = 1;
 }
 
-message CreateUser {
+message GetUserResponse {
+  string name = 1;
+  string email = 2;
+  string password = 3;
+  repeated string orderedBooks = 4;
+}
+
+message CreateUserResponse {
   User user = 1;
 }
 
-service UserService {
-  rpc Create(User) returns (CreateUser) {}
-  rpc Get(User) returns (User) {}
-  rpc GetAllUsers(stream GetUserRequest) returns (stream User) {}
+message GetAllUsersRequest {
+
 }
+
+message GetAllUsersResponse {
+  repeated User allUsers = 1;
+}
+
 
