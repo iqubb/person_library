@@ -1,26 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	"context"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const (
-	hostname      = "localhost"
-	host_port     = 5432
-	username      = "postgres"
-	password      = "gogol"
-	database_name = "books"
-)
-
-func CreateConnection() (*sqlx.DB, error) {
-	config := fmt.Sprintf("port=%d host=%s user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host_port, hostname, username, password, database_name)
-	db, err := sqlx.Connect("postgres", config)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
+func Connect(ctx context.Context, uri string) (*mongo.Client, error) {
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	return client, err
 }

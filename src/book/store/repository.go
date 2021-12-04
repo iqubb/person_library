@@ -3,49 +3,85 @@ package main
 import (
 	"context"
 	_ "github.com/iqubb/src/book/proto"
-	"github.com/jmoiron/sqlx"
+	pb "github.com/iqubb/src/book/proto"
 	_ "github.com/lib/pq"
-	"log"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Book struct {
-	ID      int64  `sql:"id"`
+	Id      int64  `sql:"id"`
 	Title   string `sql:"title"`
 	Author  string `sql:"author"`
 	isOrder bool   `sql:"is_order"`
 }
 
-type PostgresRepository struct {
-	db *sqlx.DB
+type MongoRepository struct {
+	db *mongo.Collection
 }
 
-func (repos *PostgresRepository) GetBook(ctx context.Context, id int64) (*Book, error) {
+type Repository interface {
+	CreateBook(ctx context.Context, book *Book) error
+	GetBook(ctx context.Context, id int64) (*Book, error)
+	GetAllBooks(ctx context.Context) ([]*Book, error)
+	GetBooksByAuthor(ctx context.Context, author string) ([]*Book, error)
+}
+
+func (repos *MongoRepository) CreateBook(ctx context.Context, book *Book) {
+	repos.db.InsertOne(ctx, book)
+}
+
+func (repos *MongoRepository) GetBook(ctx context.Context, id int64) *Book {
 	var book *Book
-	if err := repos.db.GetContext(ctx, &book, "select * from books where id = $1", id); err != nil {
-		return nil, err
-	}
-	return book, nil
+	cursor, _ := repos.db.Find(ctx, bson.M{"id": id})
+	cursor.All(ctx, &book)
+	return book
 }
 
-func (repos *PostgresRepository) CreateBook(ctx context.Context, book *Book) error {
-	log.Println(book)
-	query := "insert into books (id, title, author, isOrder) values ($1, $2, $3, $4, $5)"
-	_, err := repos.db.ExecContext(ctx, query, book.ID, book.Title, book.Author, book.isOrder)
-	return err
-}
-
-func (repos *PostgresRepository) GetAllBooks(ctx context.Context) ([]*Book, error) {
+func (repos *MongoRepository) GetAllBooks(ctx context.Context) []*Book {
 	books := make([]*Book, 0)
-	if err := repos.db.GetContext(ctx, books, "select * from books"); err != nil {
-		return books, err
-	}
-	return books, nil
+	cursor, _ := repos.db.Find(ctx, bson.M{})
+	cursor.All(ctx, &books)
+	return books
 }
 
-func (repos *PostgresRepository) GetBooksByAuthor(ctx context.Context, author string) ([]*Book, error) {
+func (repos *MongoRepository) GetBooksByAuthor(ctx context.Context, author string) []*Book {
 	books := make([]*Book, 0)
-	if err := repos.db.GetContext(ctx, books, "select * from books where author = $1", author); err != nil {
-		return books, err
+	cursor, _ := repos.db.Find(ctx, bson.M{"author": author})
+	cursor.All(ctx, &books)
+	return books
+}
+
+func ParsingBook(book *pb.Book) *Book {
+	return &Book{
+		Id:      book.Id,
+		Title:   book.Title,
+		Author:  book.Author,
+		isOrder: book.IsOrder,
 	}
-	return books, nil
+}
+
+func UnparsingBook(book *Book) *pb.Book {
+	return &pb.Book{
+		Id:      book.Id,
+		Title:   book.Title,
+		Author:  book.Author,
+		IsOrder: book.isOrder,
+	}
+}
+
+func ParsingAllBooks(books []*pb.Book) []*Book {
+	result := make([]*Book, len(books))
+	for _, val := range books {
+		result = append(result, ParsingBook(val))
+	}
+	return result
+}
+
+func UnparsingAllBooks(books []*Book) []*pb.Book {
+	result := make([]*pb.Book, len(books))
+	for _, val := range books {
+		result = append(result, UnparsingBook(val))
+	}
+	return result
 }

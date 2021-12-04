@@ -3,11 +3,10 @@ package main
 import (
 	"context"
 	pb "github.com/iqubb/src/book/proto"
+	//_ "github.com/iqubb/src/book/store"
 )
 
 type BookServer struct {
-	//add DB
-	pb.UnimplementedBookServiceServer
 }
 
 func (s *BookServer) GetBook(ctx context.Context, bReq *pb.GetBookRequest) (*pb.GetBookResponse, error) {
