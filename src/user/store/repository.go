@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	_ "github.com/iqubb/src/user/proto"
+	pb "github.com/iqubb/src/user/proto"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"log"
@@ -14,6 +15,12 @@ type User struct {
 	Email        string   `sql:"email"`
 	Password     string   `sql:"password"`
 	OrderedBooks []string `sql:"ordered_books"`
+}
+
+type Repository interface {
+	CreateUser(ctx context.Context, user *User) error
+	GetUser(ctx context.Context, id int64) (*User, error)
+	GetAllUsers(ctx context.Context) ([]*User, error)
 }
 
 type PostgresRepository struct {
@@ -45,4 +52,40 @@ func (repos *PostgresRepository) GetAllUsers(ctx context.Context) ([]*User, erro
 		return users, err
 	}
 	return users, nil
+}
+
+func ParsingUser(user *pb.User) *User {
+	return &User{
+		ID:           user.Id,
+		Name:         user.Name,
+		Email:        user.Email,
+		Password:     user.Password,
+		OrderedBooks: user.OrderedBooks,
+	}
+}
+
+func UnparsingUser(user *User) *pb.User {
+	return &pb.User{
+		Id:           user.ID,
+		Name:         user.Name,
+		Email:        user.Email,
+		Password:     user.Password,
+		OrderedBooks: user.OrderedBooks,
+	}
+}
+
+func ParsingAllUsers(users []*pb.User) []*User {
+	result := make([]*User, len(users))
+	for _, val := range users {
+		result = append(result, ParsingUser(val))
+	}
+	return result
+}
+
+func UnparsingAllUsers(users []*User) []*pb.User {
+	result := make([]*pb.User, len(users))
+	for _, val := range users {
+		result = append(result, UnparsingUser(val))
+	}
+	return result
 }

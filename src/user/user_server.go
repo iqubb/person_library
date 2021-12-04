@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	pb "github.com/iqubb/src/user/proto"
+	_ "github.com/iqubb/src/user/store"
 )
 
 type UserServer struct {
-	//add DB
-	pb.UnimplementedUserServiceServer
+	repos Repository
 }
 
 func (s *UserServer) GetUser(ctx context.Context, usReq *pb.GetUserRequest) (*pb.GetUserResponse, error) {
