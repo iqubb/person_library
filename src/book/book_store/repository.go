@@ -1,4 +1,4 @@
-package main
+package book_store
 
 import (
 	"context"
